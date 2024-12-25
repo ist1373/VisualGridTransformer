@@ -1,0 +1,18 @@
+# torch==1.9.0
+# torchvision==0.10.0
+timm
+Pillow
+blobfile
+mypy
+numpy
+pytest
+requests
+einops
+tensorboard
+scipy
+opencv-python
+Shapely
+uvicorn
+fastapi
+huggingface_hub
+orjson
