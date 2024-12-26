@@ -149,6 +149,7 @@ class DrawInstancesArgs(BaseModel):
     image_path: str = Field(default="./outputs/", description="Root directory for the images")
     output_file_name: str = Field(default="./outputs/", description="Root directory for the output")
     config: str = Field(default="./src/object_detection/Configs/cascade/publaynet_VGT_cascade_PTM.yaml")
+    windows:list[list]= Field(default=[], description="Root directory for the output")
     json_instances: InstancesModel
 
 @app.post("/draw-instances/")
@@ -163,7 +164,7 @@ async def draw_instances_image(args: DrawInstancesArgs):
         #     raise HTTPException(status_code=400, detail="Invalid JSON format")
         instances = InstancesUtils.convert_to_instances(args.json_instances)
         # draw_instances(args.image_path,args.output_file_name,instances,args.config)
-        draw_ordered_instances(args.output_file_name,instances)
+        draw_ordered_instances(args.output_file_name,instances,args.windows)
         # Return the output file as a response
         return ORJSONResponse({
             "status": "success"

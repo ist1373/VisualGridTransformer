@@ -12,6 +12,7 @@ from src.object_detection.ditod.VGTTrainer import DefaultPredictor
 from src.object_detection.ditod import add_vit_config
 import pickle
 import numpy as np
+import random
 
 
 
@@ -64,7 +65,7 @@ def draw_instances(image_path,output_file_name,instances:Instances,config_file):
     # step 6: save
     cv2.imwrite(output_file_name, result_image)
 
-def draw_ordered_instances(output_file_name, instances):
+def draw_ordered_instances(output_file_name, instances, windows = []):
 
     # Extract image dimensions from the instances object
     height, width = instances.image_size
@@ -84,6 +85,16 @@ def draw_ordered_instances(output_file_name, instances):
         cv2.putText(
             white_image, str(i + 1), (x1, y1 - 10), 
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA
+        )
+    for i, box in enumerate(windows):
+        x1, y1, x2, y2 = map(int, box[:-1])
+        color = (random.randint(1, 255),random.randint(1, 255),random.randint(1, 255))
+        # Draw rectangle on the white image
+        cv2.rectangle(white_image, (x1, y1), (x2, y2), color, 2)
+        # Add the order as text near the rectangle
+        cv2.putText(
+            white_image, str(i + 1), (x1, y1 - 10), 
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv2.LINE_AA
         )
     cv2.imwrite(output_file_name, white_image)
 
