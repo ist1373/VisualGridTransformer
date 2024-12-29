@@ -7,7 +7,7 @@ from detectron2.utils.visualizer import ColorMode, Visualizer
 from detectron2.data import MetadataCatalog
 from detectron2.structures import Instances
 from detectron2.structures import Instances, Boxes
-
+from src.object_detection.scene import Scene
 from src.object_detection.ditod.VGTTrainer import DefaultPredictor
 from src.object_detection.ditod import add_vit_config
 import pickle
@@ -65,7 +65,7 @@ def draw_instances(image_path,output_file_name,instances:Instances,config_file):
     # step 6: save
     cv2.imwrite(output_file_name, result_image)
 
-def draw_ordered_instances(output_file_name, instances, windows = []):
+def draw_ordered_instances(output_file_name, instances, scenes:list[Scene]):
 
     # Extract image dimensions from the instances object
     height, width = instances.image_size
@@ -86,8 +86,8 @@ def draw_ordered_instances(output_file_name, instances, windows = []):
             white_image, str(i + 1), (x1, y1 - 10), 
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA
         )
-    for i, box in enumerate(windows):
-        x1, y1, x2, y2 = map(int, box[:-1])
+    for i, scene in enumerate(scenes):
+        x1, y1, x2, y2 = map(int, [scene.x1,scene.y1,scene.x2,scene.y2])
         color = (random.randint(1, 255),random.randint(1, 255),random.randint(1, 255))
         # Draw rectangle on the white image
         cv2.rectangle(white_image, (x1, y1), (x2, y2), color, 2)

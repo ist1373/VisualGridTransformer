@@ -7,6 +7,7 @@ from src.object_detection.create_grid_input import create_grid
 from src.object_detection.inference import process_bounding_boxes
 from src.object_detection.draw_instances import draw_instances, draw_ordered_instances
 from src.object_detection.instances_utils import InstancesUtils
+from src.object_detection.scene import Scene
 from fastapi.responses import ORJSONResponse
 import logging
 from fastapi import FastAPI, File, UploadFile, Form
@@ -22,8 +23,9 @@ app = FastAPI()
 class Pdf2ImgArgs(BaseModel):
     pdf: str
     output: str
-    format: str
-    dpi: int
+    format: str = Field(default="png", description="image format")
+    low_dpi: int = Field(default=72, description="low_dpi")
+    high_dpi: int = Field(default=216, description="high_dpi")
 
 class CreateGridArgs(BaseModel):
     pdf: str = Field(default="default.pdf", description="Path to the input PDF file")
@@ -56,7 +58,8 @@ def convert_pdf_to_img(args: Pdf2ImgArgs):
         os.makedirs(args.output, exist_ok=True)
 
     try:
-        convert_pdf_to_image(args.output,args.pdf,args.format,args.dpi)
+        convert_pdf_to_image(args.output,args.pdf,args.format,args.low_dpi)
+        convert_pdf_to_image(args.output,args.pdf,args.format,args.high_dpi,prefix="high")
         return {"status": "success", f"output": "images has been created in {args.output}"}
     except CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Error: {e.stderr}")
@@ -145,11 +148,20 @@ class InstancesModel(BaseModel):
     scores:list[float]
     pred_classes:list[int]
 
+class SceneModel(BaseModel):
+    components: list[list[float]]
+    x1: float
+    y1: float
+    x2: float
+    y2: float
+    zoom_factor:float
+
+    
 class DrawInstancesArgs(BaseModel):
     image_path: str = Field(default="./outputs/", description="Root directory for the images")
     output_file_name: str = Field(default="./outputs/", description="Root directory for the output")
     config: str = Field(default="./src/object_detection/Configs/cascade/publaynet_VGT_cascade_PTM.yaml")
-    windows:list[list]= Field(default=[], description="Root directory for the output")
+    scenes:list[SceneModel]= Field(default=None, description="scenes")
     json_instances: InstancesModel
 
 @app.post("/draw-instances/")
@@ -157,14 +169,13 @@ async def draw_instances_image(args: DrawInstancesArgs):
     try:
         # Save the uploaded file to a temporary location
         
-        # Parse the JSON data
-        # try:
-        #     json_instances = json.loads(args.json_str)
-        # except json.JSONDecodeError:
-        #     raise HTTPException(status_code=400, detail="Invalid JSON format")
         instances = InstancesUtils.convert_to_instances(args.json_instances)
         # draw_instances(args.image_path,args.output_file_name,instances,args.config)
-        draw_ordered_instances(args.output_file_name,instances,args.windows)
+        scenes = []
+        for scene in args.scenes:
+            scenes.append(Scene(scene.x1,scene.y1,scene.x2,scene.y2,scene.components,scene.zoom_factor))
+
+        draw_ordered_instances(args.output_file_name,instances,scenes)
         # Return the output file as a response
         return ORJSONResponse({
             "status": "success"

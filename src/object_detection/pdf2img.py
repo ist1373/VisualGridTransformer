@@ -4,7 +4,7 @@ import logging
 import os
 
 
-def convert_pdf_to_image(output,pdf,format,dpi):
+def convert_pdf_to_image(output,pdf,format,dpi,prefix=""):
     # Create the output folder if it doesn't exist
     if not os.path.exists(output):
         os.makedirs(output)
@@ -17,9 +17,14 @@ def convert_pdf_to_image(output,pdf,format,dpi):
 
     # Save the images
     for i, image in enumerate(images):
-        image.save(
-            os.path.join(
-                output, f"page_{i}.png"))
+        if len(prefix)>0:
+            image.save(
+                os.path.join(
+                    output, f"{prefix}_page_{i}.png"))
+        else:
+            image.save(
+                os.path.join(
+                    output, f"page_{i}.png"))
 
 
 if __name__ == "__main__":
