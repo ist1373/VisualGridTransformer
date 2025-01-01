@@ -91,6 +91,8 @@ def draw_ordered_instances(output_file_name, instances, scenes:list[Scene]):
         color = (random.randint(1, 255),random.randint(1, 255),random.randint(1, 255))
         # Draw rectangle on the white image
         cv2.rectangle(white_image, (x1, y1), (x2, y2), color, 2)
+        for j,comp in enumerate(scene.components):
+            cv2.rectangle(white_image, (int(comp[0]), int(comp[1])), (int(comp[2]), int(comp[3])), color, 2)
         # Add the order as text near the rectangle
         cv2.putText(
             white_image, str(i + 1), (x1, y1 - 10), 
