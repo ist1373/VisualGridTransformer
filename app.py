@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field
 from subprocess import run, CalledProcessError
 import os
 from src.object_detection.pdf2img import convert_pdf_to_image
+from src.object_detection.inference import VGT
 from src.object_detection.create_grid_input import create_grid
-from src.object_detection.inference import process_bounding_boxes
+# from src.object_detection.inference import process_bounding_boxes
 from src.object_detection.draw_instances import draw_instances, draw_ordered_instances
 from src.object_detection.instances_utils import InstancesUtils
 from src.object_detection.scene import Scene
@@ -14,6 +15,7 @@ from fastapi import FastAPI, File, UploadFile, Form
 import json
 from pathlib import Path
 import shutil
+import asyncio
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -109,9 +111,9 @@ class ExtractBoundingBoxesArgs(BaseModel):
     image_name: str = Field(default="page_1", description="Name of the image to process")
     dataset: str = Field(default="publaynet", description="Name of the dataset")
     output_root: str = Field(default="./outputs/", description="Root directory for the output")
-    config: str = Field(default="./src/object_detection/Configs/cascade/publaynet_VGT_cascade_PTM.yaml", description="Path to the configuration file")
     high_res_image_path: str = Field(default=None, description="Root directory for the images")
 
+vgt = VGT()
 
 @app.get("/extract-bounding-boxes/")
 def extract_bounding_boxes(args: ExtractBoundingBoxesArgs):
@@ -127,7 +129,7 @@ def extract_bounding_boxes(args: ExtractBoundingBoxesArgs):
             logging.error("Failed to create output directory: %s", args.output_root)
             raise HTTPException(status_code=500, detail="Failed to create output directory.")
     try:
-        output = process_bounding_boxes(args.image_root,args.grid_root,args.image_name,args.output_root,args.dataset,args.config,args.high_res_image_path)
+        output = vgt.process_bounding_boxes(args.image_root,args.grid_root,args.image_name,args.output_root,args.dataset,args.high_res_image_path)
         logging.info("extract bounding boxes successful, saved to: %s", args.output_root)
         print(output)
         return ORJSONResponse({
@@ -188,4 +190,4 @@ async def draw_instances_image(args: DrawInstancesArgs):
 if __name__ == "__main__":
 
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8008)

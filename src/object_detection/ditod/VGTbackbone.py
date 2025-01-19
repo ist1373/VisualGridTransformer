@@ -107,7 +107,8 @@ class PTM_VIT_Backbone(Backbone):
             dict[str->Tensor]: names and the corresponding features
         """
         assert x.dim() == 4, f"VIT takes an input of shape (N, C, H, W). Got {x.shape} instead!"
-        
+        print("x:",x.shape)
+        print("grid:",grid)
         vis_feat_out, grid_feat_out = self.backbone.forward_features(x, grid)
         return self.FeatureMerge.forward(vis_feat_out, grid_feat_out)
         # return self.backbone.forward_features(x)

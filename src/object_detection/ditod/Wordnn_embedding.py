@@ -78,7 +78,7 @@ class WordnnEmbedding(nn.Module):
                     
                     bbox = per_input_bbox[word_idx] / stride
                     w_start, h_start, w_end, h_end = bbox.round().astype(int).tolist()
-                            
+                    # w_start, h_start, w_end, h_end = bbox.round().int().tolist()
                     if self.use_UNK_text:
                         chargrid_map[iter_b, h_start:h_end, w_start: w_end] = 100
                     else:
